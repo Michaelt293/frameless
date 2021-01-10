@@ -209,7 +209,7 @@ class InjectionTests extends TypedDatasetSuite {
     check(forAll(prop[X2[Employee, Employee]] _))
     check(forAll(prop[Employee] _))
 
-    assert(TypedEncoder[Employee].catalystRepr == TypedEncoder[String].catalystRepr)
+    assert(TypedEncoder[Employee].catalystRepr == TypedEncoder[Int].catalystRepr)
   }
 
   test("TypedEncoder[Maybe] cannot be derived") {
@@ -229,7 +229,7 @@ class InjectionTests extends TypedDatasetSuite {
     check(forAll(prop[X2[Switch, Switch]] _))
     check(forAll(prop[Switch] _))
 
-    assert(TypedEncoder[Switch].catalystRepr == TypedEncoder[String].catalystRepr)
+    assert(TypedEncoder[Switch].catalystRepr == TypedEncoder[Int].catalystRepr)
   }
 
   test("Derive encoder for type with data constructors defined as parameterless case classes") {
@@ -240,7 +240,7 @@ class InjectionTests extends TypedDatasetSuite {
     check(forAll(prop[X2[Pixel, Pixel]] _))
     check(forAll(prop[Pixel] _))
 
-    assert(TypedEncoder[Pixel].catalystRepr == TypedEncoder[String].catalystRepr)
+    assert(TypedEncoder[Pixel].catalystRepr == TypedEncoder[Int].catalystRepr)
   }
 
   test("Derive encoder for phantom type") {
@@ -251,7 +251,7 @@ class InjectionTests extends TypedDatasetSuite {
     check(forAll(prop[X2[Connection[Int], Connection[Int]]] _))
     check(forAll(prop[Connection[Int]] _))
 
-    assert(TypedEncoder[Connection[Int]].catalystRepr == TypedEncoder[String].catalystRepr)
+    assert(TypedEncoder[Connection[Int]].catalystRepr == TypedEncoder[Int].catalystRepr)
   }
 
   test("Derive encoder for ADT with abstract class as the base type") {
@@ -262,7 +262,7 @@ class InjectionTests extends TypedDatasetSuite {
     check(forAll(prop[X2[Vehicle, Vehicle]] _))
     check(forAll(prop[Vehicle] _))
 
-    assert(TypedEncoder[Vehicle].catalystRepr == TypedEncoder[String].catalystRepr)
+    assert(TypedEncoder[Vehicle].catalystRepr == TypedEncoder[Int].catalystRepr)
   }
 
     test("Derive encoder for ADT containing constructors with the same name") {
@@ -273,45 +273,45 @@ class InjectionTests extends TypedDatasetSuite {
     check(forAll(prop[X2[Fooo, Fooo]] _))
     check(forAll(prop[Fooo] _))
 
-    assert(TypedEncoder[Fooo].catalystRepr == TypedEncoder[String].catalystRepr)
+    assert(TypedEncoder[Fooo].catalystRepr == TypedEncoder[Int].catalystRepr)
   }
 
-  test("apply method of derived Injection instance produces the correct string") {
+  test("apply method of derived Injection instance produces the correct Int") {
     import InjectionEnum._
 
-    assert(implicitly[Injection[Employee, String]].apply(Casual) === "Casual")
-    assert(implicitly[Injection[Switch, String]].apply(Switch.On) === "On")
-    assert(implicitly[Injection[Pixel, String]].apply(Blue()) === "Blue")
-    assert(implicitly[Injection[Connection[Int], String]].apply(Open) === "Open")
-    assert(implicitly[Injection[Vehicle, String]].apply(Bike) === "Bike")
-    assert(implicitly[Injection[Fooo, String]].apply(A.Bar()) === "Bar")
-    assert(implicitly[Injection[Fooo, String]].apply(B.Bar()) === "Bar")
+    assert(implicitly[Injection[Employee, Int]].apply(Casual) === 0)
+    assert(implicitly[Injection[Switch, Int]].apply(Switch.On) === 1)
+    assert(implicitly[Injection[Pixel, Int]].apply(Blue()) === 0)
+    assert(implicitly[Injection[Connection[Int], Int]].apply(Open) === 1)
+    assert(implicitly[Injection[Vehicle, Int]].apply(Bike) === 0)
+    assert(implicitly[Injection[Fooo, Int]].apply(A.Bar()) === 0)
+    assert(implicitly[Injection[Fooo, Int]].apply(B.Bar()) === 1)
   }
 
   test("invert method of derived Injection instance produces the correct value") {
     import InjectionEnum._
 
-    assert(implicitly[Injection[Employee, String]].invert("Casual") === Casual)
-    assert(implicitly[Injection[Switch, String]].invert("On") === Switch.On)
-    assert(implicitly[Injection[Pixel, String]].invert("Blue") === Blue())
-    assert(implicitly[Injection[Connection[Int], String]].invert("Open") === Open)
-    assert(implicitly[Injection[Vehicle, String]].invert("Bike") === Bike)
-    assert(implicitly[Injection[Fooo, String]].invert("Bar") === A.Bar())
-    assert(implicitly[Injection[Fooo, String]].invert("Bar") === B.Bar())
+    assert(implicitly[Injection[Employee, Int]].invert(0) === Casual)
+    assert(implicitly[Injection[Switch, Int]].invert(1) === Switch.On)
+    assert(implicitly[Injection[Pixel, Int]].invert(0) === Blue())
+    assert(implicitly[Injection[Connection[Int], Int]].invert(1) === Open)
+    assert(implicitly[Injection[Vehicle, Int]].invert(0) === Bike)
+    assert(implicitly[Injection[Fooo, Int]].invert(0) === A.Bar())
+    assert(implicitly[Injection[Fooo, Int]].invert(1) === B.Bar())
   }
 
   test(
-    "invert method of derived Injection instance should throw exception if string does not match data constructor names"
+    "invert method of derived Injection instance should throw exception if index is out of bounds"
   ) {
     import InjectionEnum._
 
     val caught = intercept[IllegalArgumentException] {
-      implicitly[Injection[Employee, String]].invert("cassual")
+      implicitly[Injection[Employee, Int]].invert(4)
     }
 
     assert(
       caught.getMessage ===
-        "Cannot construct a value of type CNil: cassual did not match data constructor names"
+        "Cannot construct a value of type CNil: index out of bounds"
     )
   }
 }

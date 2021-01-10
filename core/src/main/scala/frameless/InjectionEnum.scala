@@ -3,41 +3,38 @@ package frameless
 import shapeless._
 
 object InjectionEnum {
-  implicit val cnilInjectionEnum: Injection[CNil, String] =
+  implicit val cnilInjectionEnum: Injection[CNil, Int] =
     Injection(
       _ => throw new Exception("Impossible"),
-      name =>
+      _ =>
         throw new IllegalArgumentException(
-          s"Cannot construct a value of type CNil: $name did not match data constructor names"
+          "Cannot construct a value of type CNil: index out of bounds"
         )
     )
 
   implicit def coproductInjectionEnum[H, T <: Coproduct](
     implicit
-    typeable: Typeable[H] ,
     gen: Generic.Aux[H, HNil],
-    tInjectionEnum: Injection[T, String]
-    ): Injection[H :+: T, String] = {
-    val dataConstructorName = typeable.describe.takeWhile(_ != '.')
-
+    tInjectionEnum: Injection[T, Int]
+    ): Injection[H :+: T, Int] = {
     Injection(
       {
-        case Inl(_) => dataConstructorName
-        case Inr(t) => tInjectionEnum.apply(t)
+        case Inl(_) => 0
+        case Inr(t) => 1 + tInjectionEnum.apply(t)
       },
-      name =>
-        if (name == dataConstructorName)
+      index =>
+        if (index == 0)
           Inl(gen.from(HNil))
         else
-          Inr(tInjectionEnum.invert(name))
+          Inr(tInjectionEnum.invert(index - 1))
     )
   }
 
   implicit def genericInjectionEnum[A, R](
     implicit
     gen: Generic.Aux[A, R],
-    rInjectionEnum: Injection[R, String]
-    ): Injection[A, String] =
+    rInjectionEnum: Injection[R, Int]
+    ): Injection[A, Int] =
     Injection(
       value =>
         rInjectionEnum.apply(gen.to(value)),
